@@ -1,0 +1,222 @@
+<!--
+AirframeVault AircraftType API Prototype (Static HTML)
+- Includes navbar, filters, search button, and a mock JSON structure.
+- No Django templating, pure HTML+CSS+JS (mock data only).
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AirframeVault AircraftType API Prototype</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .navbar { background: #223a5e; color: #fff; padding: 16px 0; box-shadow: 0 2px 8px #0002; }
+    .navbar .container { display: flex; align-items: center; justify-content: space-between; }
+    .navbar-title { font-size: 1.5em; font-weight: bold; letter-spacing: 1px; }
+    .navbar-links a { color: #fff; text-decoration: none; margin-left: 24px; font-size: 1em; }
+    .navbar-links a:hover { text-decoration: underline; }
+    .container { max-width: 1000px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+    h1 { color: #2c3e50; margin-top: 0; }
+    .filters { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filters label { font-weight: bold; margin-right: 6px; }
+    .filters select, .filters input { padding: 4px 8px; border-radius: 4px; border: 1px solid #bbb; }
+    .filters button { background: #223a5e; color: #fff; border: none; border-radius: 4px; padding: 6px 18px; font-size: 1em; cursor: pointer; margin-left: 12px; }
+    .filters button:hover { background: #2d5fa4; }
+    .aircraft-list { margin-top: 24px; }
+    .aircraft-card { border-bottom: 1px solid #eee; padding: 24px 0; display: flex; gap: 32px; }
+    .aircraft-card:last-child { border-bottom: none; }
+    .aircraft-img { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; background: #ddd; }
+    .aircraft-info { flex: 1; }
+    .aircraft-title { font-size: 1.4em; margin: 0 0 8px; color: #34495e; }
+    .aircraft-meta { color: #888; font-size: 0.95em; margin-bottom: 8px; }
+    .roles { margin-bottom: 8px; }
+    .role { display: inline-block; background: #e3eafc; color: #2d5fa4; border-radius: 3px; padding: 2px 8px; margin-right: 6px; font-size: 0.92em; }
+    .media-list { margin: 8px 0 0 0; padding: 0; list-style: none; }
+    .media-list li { margin-bottom: 4px; }
+    .label { font-weight: bold; color: #555; }
+    @media (max-width: 700px) {
+      .container { padding: 10px; }
+      .aircraft-card { flex-direction: column; gap: 10px; }
+      .aircraft-img { width: 100%; height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <span class="navbar-title">AirframeVault</span>
+      <div class="navbar-links">
+        <a href="#">Home</a>
+        <a href="#">API Docs</a>
+        <a href="#">About</a>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <h1>Aircraft Types (API Prototype)</h1>
+    <form class="filters" id="filterForm" onsubmit="event.preventDefault(); filterAircraft();">
+      <div>
+        <label for="country">Country:</label>
+        <select id="country">
+          <option value="">All</option>
+          <option value="US">USA</option>
+          <option value="RU">Russia</option>
+          <option value="UK">UK</option>
+          <option value="DE">Germany</option>
+        </select>
+      </div>
+      <div>
+        <label for="era">Era:</label>
+        <select id="era">
+          <option value="">All</option>
+          <option value="MO">Modern</option>
+          <option value="CW">Cold War</option>
+          <option value="WW2">WW2</option>
+        </select>
+      </div>
+      <div>
+        <label for="fidelity">Fidelity:</label>
+        <select id="fidelity">
+          <option value="">All</option>
+          <option value="FF">Full Fidelity</option>
+          <option value="FC">FC3</option>
+          <option value="MD">Mod</option>
+        </select>
+      </div>
+      <div>
+        <label for="search">Search:</label>
+        <input type="text" id="search" placeholder="Name or Nickname">
+      </div>
+      <button type="submit">Search</button>
+    </form>
+    <div class="aircraft-list" id="aircraftList">
+      <!-- Aircraft cards will be rendered here -->
+    </div>
+  </div>
+  <script>
+    // Mock JSON data (as returned by /api/aircraft-types/)
+    const aircraftData = [
+      {
+        "id": 1,
+        "name": "F-16C Viper",
+        "model_designation": "F-16C Block 50",
+        "nickname": "Viper",
+        "country": "US",
+        "era": "MO",
+        "fidelity_level": "FF",
+        "manufacturer": "Lockheed Martin",
+        "developers": ["Eagle Dynamics"],
+        "is_flayable": true,
+        "carrier_capable": false,
+        "roles": ["Fighter", "Attack"],
+        "images": [
+          {"image": "https://example.com/f16_1.jpg", "caption": "F-16C in flight"},
+          {"image": "https://example.com/f16_2.jpg", "caption": "Cockpit view"}
+        ],
+        "videos": [
+          {"url": "https://youtu.be/abc123", "title": "Official Trailer"}
+        ]
+      },
+      {
+        "id": 2,
+        "name": "MiG-29A Fulcrum",
+        "model_designation": "MiG-29A",
+        "nickname": "Fulcrum",
+        "country": "RU",
+        "era": "CW",
+        "fidelity_level": "FC",
+        "manufacturer": "Mikoyan",
+        "developers": ["Eagle Dynamics"],
+        "is_flayable": true,
+        "carrier_capable": false,
+        "roles": ["Fighter"],
+        "images": [
+          {"image": "https://example.com/mig29_1.jpg", "caption": "MiG-29A on runway"}
+        ],
+        "videos": [
+          {"url": "https://youtu.be/xyz789", "title": "Demo Video"}
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Spitfire LF Mk IX",
+        "model_designation": "LF Mk IX",
+        "nickname": "Spitfire",
+        "country": "UK",
+        "era": "WW2",
+        "fidelity_level": "FF",
+        "manufacturer": "Supermarine",
+        "developers": ["Eagle Dynamics"],
+        "is_flayable": true,
+        "carrier_capable": false,
+        "roles": ["Fighter"],
+        "images": [
+          {"image": "https://example.com/spitfire.jpg", "caption": "Spitfire in flight"}
+        ],
+        "videos": []
+      }
+    ];
+
+    function getCountryLabel(code) {
+      return {US: 'USA', RU: 'Russia', UK: 'UK', DE: 'Germany'}[code] || code;
+    }
+    function getEraLabel(code) {
+      return {MO: 'Modern', CW: 'Cold War', WW2: 'WW2'}[code] || code;
+    }
+    function getFidelityLabel(code) {
+      return {FF: 'Full Fidelity', FC: 'FC3', MD: 'Mod'}[code] || code;
+    }
+
+    function renderAircraftList(data) {
+      const list = document.getElementById('aircraftList');
+      list.innerHTML = '';
+      if (!data.length) {
+        list.innerHTML = '<p>No aircraft found.</p>';
+        return;
+      }
+      data.forEach(ac => {
+        const imgSrc = ac.images[0]?.image || 'https://via.placeholder.com/180x120?text=No+Image';
+        const roles = ac.roles.map(r => `<span class=\"role\">${r}</span>`).join(' ');
+        const devs = ac.developers.join(', ');
+        const images = ac.images.map(img => `<a href=\"${img.image}\" target=\"_blank\">${img.caption || 'Image'}</a>`).join(', ');
+        const videos = ac.videos.map(v => `<a href=\"${v.url}\" target=\"_blank\">${v.title || v.url}</a>`).join(', ');
+        list.innerHTML += `
+          <div class=\"aircraft-card\">
+            <img class=\"aircraft-img\" src=\"${imgSrc}\" alt=\"${ac.name}\">
+            <div class=\"aircraft-info\">
+              <div class=\"aircraft-title\">${ac.name} <span class=\"aircraft-meta\">(${getCountryLabel(ac.country)}, ${getEraLabel(ac.era)}, ${getFidelityLabel(ac.fidelity_level)})</span></div>
+              <div class=\"roles\">${roles}</div>
+              <div class=\"aircraft-meta\">
+                <span class=\"label\">Manufacturer:</span> ${ac.manufacturer}<br>
+                <span class=\"label\">Developers:</span> ${devs}<br>
+                <span class=\"label\">Flyable:</span> ${ac.is_flayable ? 'Yes' : 'No'} &nbsp;|&nbsp; <span class=\"label\">Carrier Capable:</span> ${ac.carrier_capable ? 'Yes' : 'No'}
+              </div>
+              <ul class=\"media-list\">
+                <li><span class=\"label\">Images:</span> ${images || 'None'}</li>
+                <li><span class=\"label\">Videos:</span> ${videos || 'None'}</li>
+              </ul>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filterAircraft() {
+      const country = document.getElementById('country').value;
+      const era = document.getElementById('era').value;
+      const fidelity = document.getElementById('fidelity').value;
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      const filtered = aircraftData.filter(ac => {
+        return (!country || ac.country === country)
+          && (!era || ac.era === era)
+          && (!fidelity || ac.fidelity_level === fidelity)
+          && (!search || ac.name.toLowerCase().includes(search) || ac.nickname.toLowerCase().includes(search));
+      });
+      renderAircraftList(filtered);
+    }
+
+    // Initial render
+    renderAircraftList(aircraftData);
+  </script>
+</body>
+</html>
